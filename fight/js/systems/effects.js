@@ -3,7 +3,7 @@
 // ============================================
 
 // 创建毒池
-function createPoisonPool(x, y) {
+function createPoisonPool(x, y, owner = null) {
     x = Math.max(WALL + 15, Math.min(W - WALL - 15, x));
     y = Math.max(WALL + 15, Math.min(H - WALL - 15, y));
 
@@ -13,7 +13,7 @@ function createPoisonPool(x, y) {
         if (dx * dx + dy * dy < 400) return;
     }
 
-    poisonPools.push({ x, y, radius: 30, damage: 5, pulse: Math.random() * Math.PI * 2, age: 0 });
+    poisonPools.push({ x, y, radius: 30, damage: 5, pulse: Math.random() * Math.PI * 2, age: 0, owner: owner });
     document.getElementById('poolCount').textContent = `POOLS: ${poisonPools.length}`;
 }
 
@@ -97,7 +97,7 @@ function updateShockwaves(dt) {
         }
 
         // 检测敌人受伤
-        const allBalls = [ballA, ballM, ballB, ballD];
+        const allBalls = [ballA, ballM, ballB, ballD, ballV, ballL];
         for (const ball of allBalls) {
             if (!ball.active || ball.hp <= -999) continue;
             // 冲击波伤害敌人

@@ -13,6 +13,8 @@ class PoisonBall extends Ball {
 
         this.moveSpeed = 1.25;
         this.cloudCooldown = 0; // 毒云冷却时间
+        this.cloudReadyTimer = 0; // 记录冷却好后等待的时间
+        this.cloudHealRate = 8; // 毒云中每秒回复生命值
     }
 
     update(dt, others) {
@@ -44,8 +46,30 @@ class PoisonBall extends Ball {
         // 中毒持续伤害
         this.updatePoison(dt);
 
+        // 在毒云中回血
+        for (const pool of poisonPools) {
+            const dx = this.x - pool.x, dy = this.y - pool.y;
+            if (dx * dx + dy * dy < (pool.radius + this.radius) ** 2) {
+                if (this.hp < this.maxHp) {
+                    this.hp = Math.min(this.maxHp, this.hp + this.cloudHealRate * dt);
+                }
+                break;
+            }
+        }
+
         // 毒云冷却
-        if (this.cloudCooldown > 0) this.cloudCooldown -= dt;
+        if (this.cloudCooldown > 0) {
+            this.cloudCooldown -= dt;
+            this.cloudReadyTimer = 0;
+        } else {
+            // 冷却好后等待5秒自动释放
+            this.cloudReadyTimer += dt;
+            if (this.cloudReadyTimer >= 5) {
+                createPoisonCloud(this.x, this.y, 'B');
+                this.cloudCooldown = 3;
+                this.cloudReadyTimer = 0;
+            }
+        }
 
         // 死亡检测
         if (this.hp <= 0 && this.hp > -999) {

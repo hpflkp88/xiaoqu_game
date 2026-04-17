@@ -9,7 +9,7 @@ let gameState = 'countdown';
 let gameTime = 0;
 let lastTime = performance.now();
 let screenShake = { x: 0, y: 0, intensity: 0 };
-let totalDamage = { A: 0, M: 0, B: 0, D: 0 };
+let totalDamage = { A: 0, M: 0, B: 0, D: 0, V: 0, L: 0 };
 let gameEndTimeout = null;
 
 // 游戏元素数组
@@ -23,7 +23,7 @@ const swordTrail = [];
 const shockwaves = [];
 
 // 球实例（后续在core中初始化）
-let ballA, ballM, ballB, ballD;
+var ballA, ballM, ballB, ballD, ballV, ballL;
 
 // 队伍系统
 const TEAM_COLORS = {
@@ -35,7 +35,9 @@ let ballTeams = {
     'A': 'none',  // 'none' | 'red' | 'blue'
     'M': 'none',
     'B': 'none',
-    'D': 'none'
+    'D': 'none',
+    'V': 'none',
+    'L': 'none'
 };
 let teamReds = [];  // 红队球列表
 let teamBlues = []; // 蓝队球列表

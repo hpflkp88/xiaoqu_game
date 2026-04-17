@@ -22,49 +22,45 @@ class SwordBall extends Ball {
         this.stickTimer = 0;
 
         // 移动速度（恒定）
-        this.moveSpeed = 1.25;
+        this.moveSpeed = 1.5625;
     }
 
     update(dt, others) {
-        if (this.isFrozen > 0) {
-            this.isFrozen -= dt;
-            this.freezeImmunity = 0.5;
-            this.vx *= 0.85;
-            this.vy *= 0.85;
-            if (this.isFrozen <= 0) {
-                this.isFrozen = 0;
-            }
-        } else {
-            this.freezeImmunity = Math.max(0, this.freezeImmunity - dt);
-            this.invincible = Math.max(0, this.invincible - dt);
-            this.auraPhase += dt * 3;
+        // 剑球不受冰冻效果影响（全程免疫）
+        // 剑球不受毒雾减速影响（移动速度不变）
 
-            // 恒定速度移动（无AI控制）
-            if (gameState === 'playing') {
-                this.moveWithConstantSpeed();
-            }
+        this.invincible = Math.max(0, this.invincible - dt);
+        this.auraPhase += dt * 3;
 
-            this.x += this.vx;
-            this.y += this.vy;
+        // 血量越低，剑的旋转速度越快（最低50%血量时达到2倍速度）
+        const hpPercent = this.hp / this.maxHp;
+        const speedMultiplier = 1 + (1 - hpPercent) * 1;
 
-            // 剑的旋转
-            this.swordAngle += this.swordRotSpeed * dt;
-            this.swordAngle2 += this.swordRotSpeed * dt;
-            const tipX = this.x + Math.cos(this.swordAngle) * this.swordLength;
-            const tipY = this.y + Math.sin(this.swordAngle) * this.swordLength;
-            swordTrail.push({ x: tipX, y: tipY, alpha: 1, color: '#ff6b6b' });
-            if (swordTrail.length > 12) swordTrail.shift();
-            // 第二把剑的轨迹
-            const tipX2 = this.x + Math.cos(this.swordAngle2) * this.swordLength;
-            const tipY2 = this.y + Math.sin(this.swordAngle2) * this.swordLength;
-            swordTrail.push({ x: tipX2, y: tipY2, alpha: 1, color: '#ff6b6b' });
-            if (swordTrail.length > 24) swordTrail.shift();
+        // 恒定速度移动（无AI控制，不受毒雾减速影响）
+        if (gameState === 'playing') {
+            this.moveWithConstantSpeed();
         }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // 剑的旋转（血量越低转速越快）
+        this.swordAngle += this.swordRotSpeed * speedMultiplier * dt;
+        this.swordAngle2 += this.swordRotSpeed * speedMultiplier * dt;
+        const tipX = this.x + Math.cos(this.swordAngle) * this.swordLength;
+        const tipY = this.y + Math.sin(this.swordAngle) * this.swordLength;
+        swordTrail.push({ x: tipX, y: tipY, alpha: 1, color: '#ff6b6b' });
+        if (swordTrail.length > 12) swordTrail.shift();
+        // 第二把剑的轨迹
+        const tipX2 = this.x + Math.cos(this.swordAngle2) * this.swordLength;
+        const tipY2 = this.y + Math.sin(this.swordAngle2) * this.swordLength;
+        swordTrail.push({ x: tipX2, y: tipY2, alpha: 1, color: '#ff6b6b' });
+        if (swordTrail.length > 24) swordTrail.shift();
 
         // 完美弹性墙壁碰撞
         this.handleWallCollisionPerfect();
 
-        // 中毒持续伤害
+        // 中毒持续伤害（不吃毒雾减速，但仍然受毒伤）
         this.updatePoison(dt);
 
         // 死亡检测
@@ -120,6 +116,37 @@ class SwordBall extends Ball {
             x: this.x + Math.cos(this.swordAngle2) * this.swordLength,
             y: this.y + Math.sin(this.swordAngle2) * this.swordLength
         };
+    }
+
+    // 检测剑是否阻挡投射物（返回是否阻挡）
+    blocksProjectile(px, py, pradius) {
+        if (!this.active || this.hp <= -999) return false;
+
+        const swordWidthHalf = this.swordWidth / 2 + pradius;
+
+        // 检查两把剑
+        const tips = [this.getSwordTip(), this.getSwordTip2()];
+        for (const tip of tips) {
+            // 剑是沿半径方向的，判断点到线段的距离
+            const dist = this.pointToSegmentDistance(px, py, this.x, this.y, tip.x, tip.y);
+            if (dist < swordWidthHalf) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 点到线段的距离
+    pointToSegmentDistance(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+
+        let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+
+        const nearX = x1 + t * dx, nearY = y1 + t * dy;
+        return Math.sqrt((px - nearX) ** 2 + (py - nearY) ** 2);
     }
 
     draw() {

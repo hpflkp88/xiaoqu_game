@@ -42,88 +42,79 @@ function resolveCollision(a, b) {
 // 检测球之间的碰撞
 function checkBallCollisions() {
     // 碰撞伤害定义
-    const collisionDamage = { 'A': 6, 'M': 3, 'B': 0, 'D': 3 };
+    const collisionDamage = { 'A': 6, 'M': 3, 'B': 0, 'D': 3, 'V': 5, 'L': 4 };
 
-    // ballA vs ballM
-    if (ballA.active && ballM.active && circleCollision(ballA, ballM) && !isSameTeam('A', 'M')) {
-        resolveCollision(ballA, ballM);
-        if (ballA.hp > -999 && ballM.hp > -999) {
-            ballA.takeDamage(collisionDamage['M'], ballM.x, ballM.y, 'M');
-            ballM.takeDamage(collisionDamage['A'], ballA.x, ballA.y, 'A');
-            totalDamage.M += collisionDamage['M'];
-            totalDamage.A += collisionDamage['A'];
-            spawnParticles((ballA.x + ballM.x) / 2, (ballA.y + ballM.y) / 2, '#ff6b6b', 5);
-            triggerScreenShake(2);
-        }
-    }
-    // ballA vs ballB
-    if (ballA.active && ballB.active && circleCollision(ballA, ballB) && !isSameTeam('A', 'B')) {
-        resolveCollision(ballA, ballB);
-        if (ballA.hp > -999 && ballB.hp > -999) {
-            ballA.takeDamage(collisionDamage['B'], ballB.x, ballB.y, 'B');
-            ballB.takeDamage(collisionDamage['A'], ballA.x, ballA.y, 'A');
-            totalDamage.B += collisionDamage['B'];
-            totalDamage.A += collisionDamage['A'];
-            spawnParticles((ballA.x + ballB.x) / 2, (ballA.y + ballB.y) / 2, '#50fa7b', 5);
-            triggerScreenShake(2);
-            const cx = (ballA.x + ballB.x) / 2, cy = (ballA.y + ballB.y) / 2;
-            if (ballB.cloudCooldown <= 0) {
-                createPoisonCloud(cx, cy, 'B');
-                ballB.cloudCooldown = 3;
+    // 剑球血量越低碰撞伤害越高
+    const swordHpPercent = ballA.hp / ballA.maxHp;
+    const swordDamageMultiplier = 1 + (1 - swordHpPercent) * 1.5;
+    const swordCollisionDamage = Math.round(collisionDamage['A'] * swordDamageMultiplier);
+
+    // Vampire球血量越低伤害越高
+    const vampireHpPercent = ballV.hp / ballV.maxHp;
+    const vampireDamageMultiplier = 1 + (1 - vampireHpPercent) * 0.5;
+    const vampireCollisionDamage = Math.round(collisionDamage['V'] * vampireDamageMultiplier);
+
+    const allBalls = [ballA, ballM, ballB, ballD, ballV, ballL];
+
+    // 遍历所有球对之间的碰撞
+    for (let i = 0; i < allBalls.length; i++) {
+        for (let j = i + 1; j < allBalls.length; j++) {
+            const ball1 = allBalls[i];
+            const ball2 = allBalls[j];
+
+            if (!ball1.active || !ball2.active) continue;
+            if (ball1.hp <= -999 || ball2.hp <= -999) continue;
+            if (isSameTeam(ball1.type, ball2.type)) continue;
+            if (!circleCollision(ball1, ball2)) continue;
+
+            resolveCollision(ball1, ball2);
+
+            let dmg1 = collisionDamage[ball2.type] || 0;
+            let dmg2 = collisionDamage[ball1.type] || 0;
+
+            // Sword球特殊伤害
+            if (ball1.type === 'A') dmg2 = swordCollisionDamage;
+            if (ball2.type === 'A') dmg1 = swordCollisionDamage;
+
+            // Vampire球特殊伤害
+            if (ball1.type === 'V') dmg2 = vampireCollisionDamage;
+            if (ball2.type === 'V') dmg1 = vampireCollisionDamage;
+
+            if (ball1.hp > -999 && ball2.hp > -999) {
+                ball1.takeDamage(dmg1, ball2.x, ball2.y, ball2.type);
+                ball2.takeDamage(dmg2, ball1.x, ball1.y, ball1.type);
+                totalDamage[ball2.type] += dmg1;
+                totalDamage[ball1.type] += dmg2;
+
+                // Vampire吸血
+                if (ball1.type === 'V' && ballV.active && dmg2 > 0) {
+                    ballV.onDealDamage(dmg2);
+                }
+                if (ball2.type === 'V' && ballV.active && dmg1 > 0) {
+                    ballV.onDealDamage(dmg1);
+                }
+
+                // Poison球碰撞生成毒云
+                if (ball1.type === 'B' && ballB.cloudCooldown <= 0) {
+                    createPoisonCloud((ball1.x + ball2.x) / 2, (ball1.y + ball2.y) / 2, 'B');
+                    ballB.cloudCooldown = 3;
+                }
+                if (ball2.type === 'B' && ballB.cloudCooldown <= 0) {
+                    createPoisonCloud((ball1.x + ball2.x) / 2, (ball1.y + ball2.y) / 2, 'B');
+                    ballB.cloudCooldown = 3;
+                }
+
+                // Lightning球链式闪电 - 从被击中的目标开始弹跳
+                if (ball1.type === 'L' && ballL.active) {
+                    ballL.startChainLightning(ball2);
+                }
+                if (ball2.type === 'L' && ballL.active) {
+                    ballL.startChainLightning(ball1);
+                }
+
+                spawnParticles((ball1.x + ball2.x) / 2, (ball1.y + ball2.y) / 2, ball1.color, 5);
+                triggerScreenShake(2);
             }
-        }
-    }
-    // ballM vs ballB
-    if (ballM.active && ballB.active && circleCollision(ballM, ballB) && !isSameTeam('M', 'B')) {
-        resolveCollision(ballM, ballB);
-        if (ballM.hp > -999 && ballB.hp > -999) {
-            ballM.takeDamage(collisionDamage['B'], ballB.x, ballB.y, 'B');
-            ballB.takeDamage(collisionDamage['M'], ballM.x, ballM.y, 'M');
-            totalDamage.B += collisionDamage['B'];
-            totalDamage.M += collisionDamage['M'];
-            spawnParticles((ballM.x + ballB.x) / 2, (ballM.y + ballB.y) / 2, '#8b5cf6', 5);
-            triggerScreenShake(2);
-            const cx = (ballM.x + ballB.x) / 2, cy = (ballM.y + ballB.y) / 2;
-            if (ballB.cloudCooldown <= 0) {
-                createPoisonCloud(cx, cy, 'B');
-                ballB.cloudCooldown = 3;
-            }
-        }
-    }
-    // ballD vs ballA
-    if (ballD.active && ballA.active && circleCollision(ballD, ballA) && !isSameTeam('D', 'A')) {
-        resolveCollision(ballD, ballA);
-        if (ballD.hp > -999 && ballA.hp > -999) {
-            ballD.takeDamage(collisionDamage['A'], ballA.x, ballA.y, 'A');
-            ballA.takeDamage(collisionDamage['D'], ballD.x, ballD.y, 'D');
-            totalDamage.A += collisionDamage['A'];
-            totalDamage.D += collisionDamage['D'];
-            spawnParticles((ballD.x + ballA.x) / 2, (ballD.y + ballA.y) / 2, '#00bfff', 5);
-            triggerScreenShake(2);
-        }
-    }
-    // ballD vs ballM
-    if (ballD.active && ballM.active && circleCollision(ballD, ballM) && !isSameTeam('D', 'M')) {
-        resolveCollision(ballD, ballM);
-        if (ballD.hp > -999 && ballM.hp > -999) {
-            ballD.takeDamage(collisionDamage['M'], ballM.x, ballM.y, 'M');
-            ballM.takeDamage(collisionDamage['D'], ballD.x, ballD.y, 'D');
-            totalDamage.M += collisionDamage['M'];
-            totalDamage.D += collisionDamage['D'];
-            spawnParticles((ballD.x + ballM.x) / 2, (ballD.y + ballM.y) / 2, '#00bfff', 5);
-            triggerScreenShake(2);
-        }
-    }
-    // ballD vs ballB
-    if (ballD.active && ballB.active && circleCollision(ballD, ballB) && !isSameTeam('D', 'B')) {
-        resolveCollision(ballD, ballB);
-        if (ballD.hp > -999 && ballB.hp > -999) {
-            ballD.takeDamage(collisionDamage['B'], ballB.x, ballB.y, 'B');
-            ballB.takeDamage(collisionDamage['D'], ballD.x, ballD.y, 'D');
-            totalDamage.B += collisionDamage['B'];
-            totalDamage.D += collisionDamage['D'];
-            spawnParticles((ballD.x + ballB.x) / 2, (ballD.y + ballB.y) / 2, '#00bfff', 5);
-            triggerScreenShake(2);
         }
     }
 }
@@ -131,6 +122,12 @@ function checkBallCollisions() {
 // 检测剑的击中
 function checkSwordHit() {
     if (!ballA.active) return;
+
+    // 血量越低伤害越高（最低50%血量时达到2.5倍伤害）
+    const hpPercent = ballA.hp / ballA.maxHp;
+    const damageMultiplier = 1 + (1 - hpPercent) * 1.5;
+    const baseDamage = 8;
+    const currentDamage = Math.round(baseDamage * damageMultiplier);
 
     if (ballA.isSticking && ballA.stickTarget) {
         if (!ballA.stickTarget.active || ballA.stickTarget.hp <= -999 || isSameTeam('A', ballA.stickTarget.type)) {
@@ -142,8 +139,8 @@ function checkSwordHit() {
         ballA.stickTimer -= 1/60;
         if (ballA.stickTimer <= 0) {
             ballA.stickHits++;
-            ballA.stickTarget.takeDamage(8, ballA.x, ballA.y, 'A');
-            totalDamage.A += 8;
+            ballA.stickTarget.takeDamage(currentDamage, ballA.x, ballA.y, 'A');
+            totalDamage.A += currentDamage;
             ballA.stickTimer = 0.6;
             spawnParticles(ballA.stickTarget.x, ballA.stickTarget.y, '#ff6b6b', 12);
             triggerScreenShake(4);
@@ -170,8 +167,8 @@ function checkSwordHit() {
             ballA.stickTarget = target;
             ballA.stickHits = 1;
             ballA.stickTimer = 0.6;
-            target.takeDamage(8, ballA.x, ballA.y, 'A');
-            totalDamage.A += 8;
+            target.takeDamage(currentDamage, ballA.x, ballA.y, 'A');
+            totalDamage.A += currentDamage;
             spawnParticles(target.x, target.y, '#ff6b6b', 15);
             triggerScreenShake(6);
             break;
@@ -185,8 +182,8 @@ function checkSwordHit() {
             ballA.stickTarget = target;
             ballA.stickHits = 1;
             ballA.stickTimer = 0.6;
-            target.takeDamage(8, ballA.x, ballA.y, 'A');
-            totalDamage.A += 8;
+            target.takeDamage(currentDamage, ballA.x, ballA.y, 'A');
+            totalDamage.A += currentDamage;
             spawnParticles(target.x, target.y, '#ff6b6b', 15);
             triggerScreenShake(6);
             break;
@@ -196,20 +193,6 @@ function checkSwordHit() {
 
 // 检测中毒接触
 function checkPoisonTouch() {
-    // Poison球 → Sword球 (不同队)
-    if (ballB.active && ballA.active && ballB.hp > -999 && ballA.hp > -999 && ballA.poisonDOT <= 0 && !isSameTeam('B', 'A')) {
-        const dx = ballA.x - ballB.x, dy = ballA.y - ballB.y;
-        if (Math.sqrt(dx * dx + dy * dy) < ballA.radius + ballB.radius + 5) {
-            ballA.applyPoison();
-            spawnParticles(ballA.x, ballA.y, '#bd93f9', 10);
-            const angle = Math.atan2(dy, dx);
-            ballA.vx += Math.cos(angle) * 3;
-            ballA.vy += Math.sin(angle) * 3;
-            ballB.vx -= Math.cos(angle) * 3;
-            ballB.vy -= Math.sin(angle) * 3;
-        }
-    }
-
     // Poison球 → Shield球 (不同队, 50%伤害减免由ShieldBall处理)
     if (ballB.active && ballD.active && ballB.hp > -999 && ballD.hp > -999 && ballD.poisonDOT <= 0 && !isSameTeam('B', 'D')) {
         const dx = ballD.x - ballB.x, dy = ballD.y - ballB.y;
@@ -221,15 +204,6 @@ function checkPoisonTouch() {
             ballD.vy += Math.sin(angle) * 3;
             ballB.vx -= Math.cos(angle) * 3;
             ballB.vy -= Math.sin(angle) * 3;
-        }
-    }
-
-    // Mage球 → Sword球 (不同队)
-    if (ballM.active && ballA.active && ballM.hp > -999 && ballA.hp > -999 && ballA.poisonDOT <= 0 && !isSameTeam('M', 'A')) {
-        const dx = ballA.x - ballM.x, dy = ballA.y - ballM.y;
-        if (Math.sqrt(dx * dx + dy * dy) < ballA.radius + ballM.radius) {
-            ballA.applyPoison();
-            spawnParticles(ballA.x, ballA.y, '#bd93f9', 8);
         }
     }
 
@@ -277,9 +251,10 @@ function checkPoisonPools() {
     for (const pool of poisonPools) {
         pool.age += 1/60;
         pool.pulse += 0.06;
-        for (const ball of [ballA, ballM, ballB, ballD]) {
+        for (const ball of [ballA, ballM, ballB, ballD, ballV, ballL]) {
             if (!ball.active || ball.hp <= -999) continue;
-            if (ball.type === 'B') continue; // Only Poison is immune
+            // Poison球免疫毒池伤害（剑球不禁忌，虽然会受到伤害）
+            if (ball.type === 'B') continue;
 
             // 检查是否是友军（Pool.owner的队友不受伤害）
             if (pool.owner && !isEnemy(ball.type, pool.owner)) continue;

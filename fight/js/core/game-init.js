@@ -5,7 +5,7 @@
 // 初始化游戏
 function init() {
     // 重置队伍
-    ballTeams = { 'A': 'none', 'M': 'none', 'B': 'none', 'D': 'none' };
+    ballTeams = { 'A': 'none', 'M': 'none', 'B': 'none', 'D': 'none', 'V': 'none', 'L': 'none' };
     teamReds = [];
     teamBlues = [];
 
@@ -13,6 +13,8 @@ function init() {
     ballM = new MageBall(W / 2, 120, 20, '#8b5cf6', 'M');
     ballB = new PoisonBall(W - 120, H - 180, 22, '#50fa7b', 'B');
     ballD = new ShieldBall(W / 2, H - 120, 24, '#00bfff', 'D'); // Shield ball
+    ballV = new VampireBall(120, H / 2, 21, '#dc143c', 'V'); // Vampire ball
+    ballL = new LightningBall(W - 120, H / 2, 19, '#ffff00', 'L'); // Lightning ball
 
     // 清空数组
     poisonPools.length = 0;
@@ -70,7 +72,7 @@ function startBattle() {
     teamBlues = Object.keys(ballTeams).filter(t => ballTeams[t] === 'blue');
 
     // 设置球是否激活（只激活有队伍的球）
-    const allBalls = { 'A': ballA, 'M': ballM, 'B': ballB, 'D': ballD };
+    const allBalls = { 'A': ballA, 'M': ballM, 'B': ballB, 'D': ballD, 'V': ballV, 'L': ballL };
     for (const [type, ball] of Object.entries(allBalls)) {
         ball.active = ballTeams[type] !== 'none';
     }
@@ -86,6 +88,8 @@ function startBattle() {
     const angleM = Math.random() * Math.PI * 2;
     const angleB = Math.random() * Math.PI * 2;
     const angleD = Math.random() * Math.PI * 2;
+    const angleV = Math.random() * Math.PI * 2;
+    const angleL = Math.random() * Math.PI * 2;
     ballA.vx = Math.cos(angleA) * ballA.moveSpeed;
     ballA.vy = Math.sin(angleA) * ballA.moveSpeed;
     ballM.vx = Math.cos(angleM) * ballM.moveSpeed;
@@ -94,6 +98,10 @@ function startBattle() {
     ballB.vy = Math.sin(angleB) * ballB.moveSpeed;
     ballD.vx = Math.cos(angleD) * ballD.moveSpeed;
     ballD.vy = Math.sin(angleD) * ballD.moveSpeed;
+    ballV.vx = Math.cos(angleV) * ballV.moveSpeed;
+    ballV.vy = Math.sin(angleV) * ballV.moveSpeed;
+    ballL.vx = Math.cos(angleL) * ballL.moveSpeed;
+    ballL.vy = Math.sin(angleL) * ballL.moveSpeed;
 
     startCountdown();
 }
@@ -104,19 +112,23 @@ function setupTeamPositions() {
     const redTypes = Object.keys(ballTeams).filter(t => ballTeams[t] === 'red');
     const blueTypes = Object.keys(ballTeams).filter(t => ballTeams[t] === 'blue');
 
-    const allBalls = { 'A': ballA, 'M': ballM, 'B': ballB, 'D': ballD };
+    const allBalls = { 'A': ballA, 'M': ballM, 'B': ballB, 'D': ballD, 'V': ballV, 'L': ballL };
 
     // 红队位置 - 左侧垂直分布
     const redPositions = [
-        { x: 60, y: 80 },
-        { x: 60, y: 200 },
-        { x: 60, y: 320 }
+        { x: 60, y: 60 },
+        { x: 60, y: 180 },
+        { x: 60, y: 300 },
+        { x: 60, y: 420 },
+        { x: 60, y: 540 }
     ];
     // 蓝队位置 - 右侧垂直分布
     const bluePositions = [
-        { x: W - 60, y: 80 },
-        { x: W - 60, y: 200 },
-        { x: W - 60, y: 320 }
+        { x: W - 60, y: 60 },
+        { x: W - 60, y: 180 },
+        { x: W - 60, y: 300 },
+        { x: W - 60, y: 420 },
+        { x: W - 60, y: 540 }
     ];
 
     redTypes.forEach((type, i) => {
@@ -147,7 +159,9 @@ function showTeamSelection() {
         { type: 'A', name: 'SWORD', color: '#ff6b6b' },
         { type: 'M', name: 'MAGE', color: '#8b5cf6' },
         { type: 'B', name: 'POISON', color: '#50fa7b' },
-        { type: 'D', name: 'SHIELD', color: '#00bfff' }
+        { type: 'D', name: 'SHIELD', color: '#00bfff' },
+        { type: 'V', name: 'VAMPIRE', color: '#dc143c' },
+        { type: 'L', name: 'LIGHTNING', color: '#ffff00' }
     ];
 
     sel.innerHTML = `
@@ -249,21 +263,25 @@ function showTeamSelection() {
 
     // 随机分配
     window.randomTeams = function() {
-        const types = ['A', 'M', 'B', 'D'];
+        const types = ['A', 'M', 'B', 'D', 'V', 'L'];
         // 随机洗牌
         for (let i = types.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [types[i], types[j]] = [types[j], types[i]];
         }
-        // 前两个红队，后两个蓝队
+        // 前三个红队，后三个蓝队
         ballTeams['A'] = 'none';
         ballTeams['M'] = 'none';
         ballTeams['B'] = 'none';
         ballTeams['D'] = 'none';
+        ballTeams['V'] = 'none';
+        ballTeams['L'] = 'none';
         ballTeams[types[0]] = 'red';
         ballTeams[types[1]] = 'red';
-        ballTeams[types[2]] = 'blue';
+        ballTeams[types[2]] = 'red';
         ballTeams[types[3]] = 'blue';
+        ballTeams[types[4]] = 'blue';
+        ballTeams[types[5]] = 'blue';
         renderAll();
     };
 
@@ -311,9 +329,9 @@ function restart() {
 // 伤害跟踪系统 Damage Tracking System
 // ============================================
 
-const TYPES = ['A', 'M', 'B', 'D'];
-const TYPE_NAMES = { 'A': 'SWORD', 'M': 'MAGE', 'B': 'POISON', 'D': 'SHIELD' };
-const TYPE_CLASS = { 'A': 'sword', 'M': 'mage', 'B': 'poison', 'D': 'shield' };
+const TYPES = ['A', 'M', 'B', 'D', 'V', 'L'];
+const TYPE_NAMES = { 'A': 'SWORD', 'M': 'MAGE', 'B': 'POISON', 'D': 'SHIELD', 'V': 'VAMPIRE', 'L': 'LIGHTNING' };
+const TYPE_CLASS = { 'A': 'sword', 'M': 'mage', 'B': 'poison', 'D': 'shield', 'V': 'vampire', 'L': 'lightning' };
 
 // 初始化伤害跟踪数据结构
 function initDamageTracking() {
@@ -344,12 +362,8 @@ function updateDamagePanel() {
     const panel = document.getElementById('damagePanel');
     if (!panel) return;
 
-    if (gameState === 'playing' || gameState === 'waiting') {
-        panel.classList.add('visible');
-    } else {
-        panel.classList.remove('visible');
-        return;
-    }
+    // 始终显示伤害面板
+    panel.classList.add('visible');
 
     // 更新造成伤害表
     updateDamageTable('damageDealtTable', damageDealt, false);
@@ -414,7 +428,7 @@ function updateDamageTable(tableId, data, isTaken) {
 
 // 检测胜利者（队伍模式）
 function checkWinner() {
-    const allBalls = [ballA, ballM, ballB, ballD];
+    const allBalls = [ballA, ballM, ballB, ballD, ballV, ballL];
     const aliveByTeam = { red: 0, blue: 0 };
 
     for (const ball of allBalls) {

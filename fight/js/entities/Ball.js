@@ -127,7 +127,7 @@ class Ball {
         this.active = false; // 死亡后禁用
         spawnParticles(this.x, this.y, this.color, 30);
         if (this.type === 'B') {
-            createPoisonPool(this.x, this.y);
+            createPoisonPool(this.x, this.y, 'B');
         }
         checkWinner();
     }
@@ -269,6 +269,9 @@ class Ball {
         // 描边
         this.drawOutline();
 
+        // 队伍指示器（头顶三角）
+        this.drawTeamIndicator();
+
         // 类型标记
         this.drawTypeLabel();
 
@@ -329,24 +332,70 @@ class Ball {
     }
 
     drawOutline() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // 队伍颜色标记
+        // 队伍颜色标记 - 更粗更明显的边框
         const teamColor = getTeamColor(this.type);
         if (teamColor) {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, this.radius + 6, 0, Math.PI * 2);
             ctx.strokeStyle = teamColor;
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
             ctx.shadowColor = teamColor;
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 15;
             ctx.stroke();
             ctx.shadowBlur = 0;
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
+    }
+
+    // 绘制队伍指示器（头顶三角标记）
+    drawTeamIndicator() {
+        const teamColor = getTeamColor(this.type);
+        if (!teamColor) return;
+
+        const indicatorY = this.y - this.radius - 18;
+        const size = 8;
+
+        ctx.save();
+        ctx.translate(this.x, indicatorY);
+        ctx.rotate(Math.PI);
+
+        ctx.beginPath();
+        ctx.moveTo(0, size);
+        ctx.lineTo(-size * 0.8, -size * 0.5);
+        ctx.lineTo(size * 0.8, -size * 0.5);
+        ctx.closePath();
+
+        ctx.fillStyle = teamColor;
+        ctx.shadowColor = teamColor;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // 绘制队友连线
+    drawTeamLine(otherBall) {
+        if (!isSameTeam(this.type, otherBall.type)) return;
+        if (otherBall.hp <= -999 || !otherBall.active) return;
+
+        const dx = otherBall.x - this.x;
+        const dy = otherBall.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 250) return; // 只画近距离队友连线
+
+        const teamColor = getTeamColor(this.type);
+        const alpha = 1 - (dist / 250);
+
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(otherBall.x, otherBall.y);
+        ctx.strokeStyle = teamColor + Math.floor(alpha * 80).toString(16).padStart(2, '0');
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
 
     drawTypeLabel() {

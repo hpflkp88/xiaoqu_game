@@ -6,7 +6,7 @@
 function updateProjectiles(dt, balls) {
     // 清除死亡球发射的投射物
     const deadTypes = [];
-    for (const ball of [ballA, ballM, ballB, ballD]) {
+    for (const ball of [ballA, ballM, ballB, ballD, ballV, ballL]) {
         if (!ball.active && ball.hp <= -999) {
             deadTypes.push(ball.type);
         }
@@ -61,8 +61,32 @@ function updateProjectiles(dt, balls) {
 
             const dx = ball.x - p.x, dy = ball.y - p.y;
             if (dx * dx + dy * dy < (ball.radius + p.radius) ** 2) {
+                // 剑球检查是否能阻挡投射物
+                let blocked = false;
+                if (p.owner === 'M' || p.owner === 'B') {
+                    // 法师和毒球的投射物可以被剑阻挡
+                    for (const sword of [ballA, ballD]) {
+                        if (!sword || !sword.active || sword.hp <= -999) continue;
+                        if (sword.type === p.owner) continue; // 同队不挡
+                        if (sword.blocksProjectile && sword.blocksProjectile(p.x, p.y, p.radius)) {
+                            // 阻挡成功
+                            spawnParticles(p.x, p.y, '#ff6b6b', 15);
+                            spawnDamageNumber(p.x, p.y, 'BLOCKED');
+                            blocked = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (blocked) {
+                    createExplosion(p.x, p.y, 30, 0, null);
+                    hit = true;
+                    break;
+                }
+
                 ball.takeDamage(p.damage, p.x, p.y, p.owner);
-                if (p.owner === 'M') {
+                if (p.owner === 'M' && ball.type !== 'A') {
+                    // 剑球免疫冰冻
                     ball.applyFreeze(ball.freezeDuration);
                     totalDamage.M += p.damage;
                 } else if (p.owner === 'A') {

@@ -18,7 +18,7 @@ class MageBall extends Ball {
         this.mageAngle = 0;
 
         // 移动速度（恒定）
-        this.moveSpeed = 1.25;
+        this.moveSpeed = 1.5625;
     }
 
     update(dt, others) {

@@ -109,6 +109,17 @@ function drawParticles(dt) {
     }
 }
 
+// 绘制队友连线
+function drawTeamLines() {
+    const allBalls = [ballA, ballM, ballB, ballD, ballV, ballL].filter(b => b.active && b.hp > -999);
+    for (const ball of allBalls) {
+        for (const other of allBalls) {
+            if (other === ball) continue;
+            ball.drawTeamLine(other);
+        }
+    }
+}
+
 // 更新背景粒子
 function updateBgParticles() {
     for (const p of bgParticles) {
@@ -147,9 +158,12 @@ function gameLoop(timestamp) {
     drawBackground();
     updateBgParticles();
 
+    // 绘制队友连线（在球之下）
+    drawTeamLines();
+
     if (gameState === 'playing' || gameState === 'waiting') {
         // 只更新激活的球
-        const balls = [ballA, ballM, ballB, ballD].filter(b => b.active);
+        const balls = [ballA, ballM, ballB, ballD, ballV, ballL].filter(b => b.active);
         balls.forEach(ball => ball.update(dt, balls));
 
         // 检测碰撞/击中（传递所有球，内部会过滤）
@@ -169,11 +183,15 @@ function gameLoop(timestamp) {
         const showMage = ballM.active;
         const showPoison = ballB.active;
         const showShield = ballD.active;
+        const showVampire = ballV.active;
+        const showLightning = ballL.active;
 
         document.getElementById('healthSword').parentElement.style.display = showSword ? 'flex' : 'none';
         document.getElementById('healthMage').parentElement.style.display = showMage ? 'flex' : 'none';
         document.getElementById('healthPoison').parentElement.style.display = showPoison ? 'flex' : 'none';
         document.getElementById('healthShield').parentElement.style.display = showShield ? 'flex' : 'none';
+        document.getElementById('healthVampire').parentElement.style.display = showVampire ? 'flex' : 'none';
+        document.getElementById('healthLightning').parentElement.style.display = showLightning ? 'flex' : 'none';
 
         if (showSword) {
             const hpPercent = Math.max(0, ballA.hp / ballA.maxHp * 100);
@@ -195,6 +213,16 @@ function gameLoop(timestamp) {
             document.getElementById('healthShield').style.width = `${hpPercent}%`;
             document.getElementById('hpShield').textContent = `${Math.round(hpPercent)}%`;
         }
+        if (showVampire) {
+            const hpPercent = Math.max(0, ballV.hp / ballV.maxHp * 100);
+            document.getElementById('healthVampire').style.width = `${hpPercent}%`;
+            document.getElementById('hpVampire').textContent = `${Math.round(hpPercent)}%`;
+        }
+        if (showLightning) {
+            const hpPercent = Math.max(0, ballL.hp / ballL.maxHp * 100);
+            document.getElementById('healthLightning').style.width = `${hpPercent}%`;
+            document.getElementById('hpLightning').textContent = `${Math.round(hpPercent)}%`;
+        }
 
         // 更新计时器
         gameTime += dt;
@@ -203,7 +231,7 @@ function gameLoop(timestamp) {
         document.getElementById('timer').textContent = `${minutes}:${seconds}`;
 
         // 更新伤害统计
-        document.getElementById('damageStats').textContent = `A:${totalDamage.A} M:${totalDamage.M} B:${totalDamage.B} D:${totalDamage.D}`;
+        document.getElementById('damageStats').textContent = `A:${totalDamage.A} M:${totalDamage.M} B:${totalDamage.B} D:${totalDamage.D} V:${totalDamage.V} L:${totalDamage.L}`;
 
         // 更新伤害面板
         updateDamagePanel();
@@ -215,11 +243,19 @@ function gameLoop(timestamp) {
     // 绘制剑拖尾
     drawSwordTrail();
 
+    // 绘制队友连线
+    drawTeamLines();
+
     // 绘制球
     ballA.draw();
     ballM.draw();
     ballB.draw();
     ballD.draw();
+    ballV.draw();
+    ballL.draw();
+
+    // 绘制闪电球的闪电轨迹
+    ballL.drawLightningBolts(ctx);
 
     // 绘制投射物/爆炸
     drawProjectiles();

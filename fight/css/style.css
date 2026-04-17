@@ -3,11 +3,24 @@ body {
     background: #0a0a12;
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
+}
+
+/* ========== 主容器 - 左右分栏 ========== */
+#mainContainer {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+}
+
+/* ========== 游戏区域 ========== */
+#gameArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* ========== GAME CONTAINER ========== */
@@ -51,6 +64,8 @@ body {
 .label-poison { color: #50fa7b; text-shadow: 0 0 8px #50fa7b; }
 .label-mage { color: #8b5cf6; text-shadow: 0 0 8px #8b5cf6; }
 .label-shield { color: #00bfff; text-shadow: 0 0 8px #00bfff; }
+.label-vampire { color: #dc143c; text-shadow: 0 0 8px #dc143c; }
+.label-lightning { color: #ffff00; text-shadow: 0 0 8px #ffff00; }
 
 .health-bar-bg {
     width: 110px;
@@ -71,6 +86,8 @@ body {
 .health-poison { background: linear-gradient(90deg, #2ed573, #50fa7b); }
 .health-mage { background: linear-gradient(90deg, #7c3aed, #8b5cf6); }
 .health-shield { background: linear-gradient(90deg, #0099cc, #00bfff); }
+.health-vampire { background: linear-gradient(90deg, #b22222, #dc143c); }
+.health-lightning { background: linear-gradient(90deg, #cccc00, #ffff00); }
 .health-text {
     position: absolute;
     left: 50%;
@@ -218,47 +235,46 @@ body {
     letter-spacing: 1px;
 }
 
-/* ========== DAMAGE PANEL ========== */
-#damagePanel {
-    position: absolute;
-    bottom: 30px;
-    left: 8px;
-    background: rgba(10, 10, 20, 0.85);
+/* ========== 伤害面板区域 ========== */
+#damageArea {
+    width: 220px;
+    background: rgba(10, 10, 20, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    padding: 8px;
-    min-width: 160px;
+    padding: 12px;
+    margin-left: 12px;
+}
+
+/* ========== DAMAGE PANEL ========== */
+#damagePanel {
+    display: block;
     font-size: 8px;
-    z-index: 50;
-    display: none;
-    max-height: 150px;
-    overflow: hidden;
 }
 #damagePanel.visible { display: block; }
 .damage-panel-title {
-    font-size: 9px;
+    font-size: 11px;
     font-weight: bold;
     color: #f1fa8c;
     letter-spacing: 1.5px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     text-align: center;
     text-shadow: 0 0 8px rgba(241, 250, 140, 0.5);
 }
-.damage-section { margin-bottom: 4px; }
+.damage-section { margin-bottom: 8px; }
 .damage-section:last-child { margin-bottom: 0; }
 .damage-section-title {
-    font-size: 7px;
-    color: #666;
+    font-size: 8px;
+    color: #888;
     letter-spacing: 1px;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding-bottom: 2px;
 }
 .damage-row {
     display: flex;
     align-items: center;
-    gap: 3px;
-    margin-bottom: 2px;
+    gap: 4px;
+    margin-bottom: 3px;
 }
 .damage-row-label {
     width: 32px;
@@ -270,9 +286,11 @@ body {
 .damage-row-label.mage { color: #8b5cf6; }
 .damage-row-label.poison { color: #50fa7b; }
 .damage-row-label.shield { color: #00bfff; }
+.damage-row-label.vampire { color: #dc143c; }
+.damage-row-label.lightning { color: #ffff00; }
 .damage-bar-wrap {
     flex: 1;
-    height: 5px;
+    height: 6px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 2px;
     overflow: hidden;
@@ -286,6 +304,8 @@ body {
 .damage-bar-fill.mage { background: linear-gradient(90deg, #7c3aed, #8b5cf6); }
 .damage-bar-fill.poison { background: linear-gradient(90deg, #2ed573, #50fa7b); }
 .damage-bar-fill.shield { background: linear-gradient(90deg, #0099cc, #00bfff); }
+.damage-bar-fill.vampire { background: linear-gradient(90deg, #b22222, #dc143c); }
+.damage-bar-fill.lightning { background: linear-gradient(90deg, #cccc00, #ffff00); }
 .damage-total {
     width: 28px;
     font-size: 7px;
