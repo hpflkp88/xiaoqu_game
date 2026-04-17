@@ -12,9 +12,9 @@ class ShieldBall extends Ball {
 
         // Shield特有属性
         this.shield = 0;
-        this.maxShield = 100;
-        this.shieldRegenRate = 5;
-        this.shieldRegenDelay = 3;
+        this.maxShield = 60;
+        this.shieldRegenRate = 8;
+        this.shieldRegenDelay = 0.5;
         this.lastDamageTime = 0;
         this.shieldCooldown = 0;
         this.shieldAngle = 0;
@@ -27,7 +27,7 @@ class ShieldBall extends Ball {
         this.shieldSurgeCooldown = 0;
         this.SHIELDSURGE_THRESHOLD = 35;
         this.SHIELDSURGE_COST = 25;
-        this.SHIELDSURGE_COOLDOWN = 8;
+        this.SHIELDSURGE_COOLDOWN = 4;
 
         // 生命过渡
         this.healthTransferCooldown = 0;
