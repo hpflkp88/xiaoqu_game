@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sI \"https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap\")",
+      "Bash(npx playwright *)",
+      "Bash(npm list *)",
+      "Bash(node test-game.js)",
+      "Bash(node *)",
+      "Bash(curl -s --connect-timeout 5 \"https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap\" -o /dev/null)",
+      "Bash(start \"\" \"D:/CODE/xiaoqiu_game/fight/index.html\")",
+      "Bash(python -m http.server 8080)",
+      "Bash(curl -s http://localhost:8080/index.html)",
+      "Bash(curl -s http://localhost:8080/js/Ball.js)",
+      "Bash(python -m http.server 8081)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s http://localhost:8080/)",
+      "Bash(curl -s http://localhost:8080/js/game-init.js)",
+      "Bash(curl -s http://localhost:8080/js/collision.js)",
+      "Bash(curl -s http://localhost:8080/js/projectiles.js)",
+      "Bash(python3 *)",
+      "Bash(grep *)",
+      "Bash(mv Ball.js SwordBall.js MageBall.js ShieldBall.js PoisonBall.js entities/)",
+      "Bash(mv game-constants.js game-init.js renderer.js core/)",
+      "Bash(mv collision.js effects.js projectiles.js systems/)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

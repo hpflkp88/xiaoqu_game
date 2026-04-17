@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fight - 2D Ball Combat</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div id="hud">
+        <div class="health-container">
+            <span class="health-label label-sword">SWORD</span>
+            <div class="health-bar-bg">
+                <div id="healthSword" class="health-bar health-sword" style="width: 100%"><span id="hpSword" class="health-text">100</span></div>
+            </div>
+        </div>
+        <div class="health-container">
+            <span class="health-label label-mage">MAGE</span>
+            <div class="health-bar-bg">
+                <div id="healthMage" class="health-bar health-mage" style="width: 100%"><span id="hpMage" class="health-text">100</span></div>
+            </div>
+        </div>
+        <div class="health-container">
+            <span class="health-label label-shield">SHIELD</span>
+            <div class="health-bar-bg">
+                <div id="healthShield" class="health-bar health-shield" style="width: 100%"><span id="hpShield" class="health-text">100</span></div>
+            </div>
+        </div>
+        <div class="health-container right">
+            <span class="health-label label-poison">POISON</span>
+            <div class="health-bar-bg">
+                <div id="healthPoison" class="health-bar health-poison" style="width: 100%"><span id="hpPoison" class="health-text">100</span></div>
+            </div>
+        </div>
+    </div>
+    <div id="timer">00:00</div>
+    <div id="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div>SWORD</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>MAGE</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00bfff"></div>SHIELD</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#50fa7b"></div>POISON</div>
+    </div>
+    <div id="stats"><span id="poolCount">POOLS: 0</span><span id="damageStats">A:0 M:0 B:0 D:0</span></div>
+    <div id="damagePanel">
+        <div class="damage-panel-title">DAMAGE TRACKER</div>
+        <div class="damage-section">
+            <div class="damage-section-title">DAMAGE DEALT</div>
+            <div class="damage-table" id="damageDealtTable"></div>
+        </div>
+        <div class="damage-section">
+            <div class="damage-section-title">DAMAGE TAKEN</div>
+            <div class="damage-table" id="damageTakenTable"></div>
+        </div>
+    </div>
+    <div id="countdown"></div>
+    <div id="winner"><h1 id="winnerText">WINNER</h1><p class="subtitle">LAST ONE STANDING</p></div>
+    <button id="restartBtn">RESTART (R)</button>
+</div>
+<div id="info">TEAM BATTLE - ELIMINATE THE OPPOSING TEAM</div>
+
+<!-- 按顺序引入JS模块 -->
+<script src="js/game-constants.js"></script>
+<script src="js/Ball.js"></script>
+<script src="js/SwordBall.js"></script>
+<script src="js/MageBall.js"></script>
+<script src="js/PoisonBall.js"></script>
+<script src="js/ShieldBall.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/collision.js"></script>
+<script src="js/projectiles.js"></script>
+<script src="js/game-init.js"></script>
+<script src="js/renderer.js"></script>
+</body>
+</html>
